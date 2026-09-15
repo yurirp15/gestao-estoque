@@ -3,13 +3,25 @@ package br.com.estoque.model;
 import java.text.NumberFormat;
 import java.util.Locale;
 
+import com.fasterxml.jackson.annotation.JsonTypeId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
+@Entity
 public class Produto {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     private String nome;
     private double preco;
     private int quantidade;
 
     //CONSTRUTOR PADRÃO (Necessário para o Spring/Jackson deserializar o JSON)
+    // IMPORTANTE: A JPA exige um construtor vazio por padrão:
     public Produto(){
 
     }
@@ -20,6 +32,10 @@ public class Produto {
         setPreco(preco); // Aplica a validação do setter
         setQuantidade(quantidade); // Aplica a validação do setter
     }
+
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
     // Sobrecarga de construtor (inicia estoque zerado por padrão)
     public Produto(String nome, double preco) {

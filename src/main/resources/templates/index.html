@@ -9,28 +9,71 @@
 <div class="container py-4">
     <h1 class="mb-4 text-center">Gestão de Estoque</h1>
 
-    <!-- Formulario de Cadastro -->
+    <!-- Mensagem de Erro -->
+    <div th:if="${erro}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${erro}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Mensagem de Sucesso -->
+    <div th:if="${sucesso}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${sucesso}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Formulario de Cadastro / Edição -->
     <div class="card mb-4 shadow-sm">
-        <div class="card-header bg-primary text-white">Cadastrar Novo Produto</div>
+        <div class="card-header bg-primary text-white"
+             th:text="${produto.id != null} ? 'Editar Produto' : 'Cadastrar Novo Produto'">
+            Cadastrar Novo Produto
+        </div>
         <div class="card-body">
-            <form th:action="@{/estoque/cadastrar}" th:object="${novoProduto}" method="post" class="row g-3">
-                <div class="col-md-4">
-                    <input type="text" th:field="*{nome}" class="form-control" placeholder="Nome do Produto" required>
-                </div>
-                <div class="col-md-3">
-                    <input type="number" step="0.01" th:field="*{preco}" class="form-control" placeholder="Preço (R$)" required>
-                </div>
-                <div class="col-md-3">
-                    <input type="number" th:field="*{quantidade}" class="form-control" placeholder="Qtd Inicial" required>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-success w-100">Cadastrar</button>
+            <form th:action="${produto.id != null} ? @{/estoque/atualizar} : @{/estoque/cadastrar}"
+                  th:object="${produto}"
+                  method="post">
+
+                <!-- Guarda o ID do produto para atualizar no banco em vez de criar um novo -->
+                <input type="hidden" th:field="*{id}" />
+
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <input type="text" th:field="*{nome}" class="form-control" placeholder="Nome do Produto" required />
+                    </div>
+                    <div class="col-md-3">
+                        <input type="number" step="0.01" th:field="*{preco}" class="form-control" placeholder="Preço" required />
+                    </div>
+                    <div class="col-md-3">
+                        <input type="number" th:field="*{quantidade}" class="form-control" placeholder="Estoque" required />
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit"
+                                class="btn w-100"
+                                th:classappend="${produto.id != null} ? 'btn-warning' : 'btn-success'"
+                                th:text="${produto.id != null} ? 'Atualizar' : 'Cadastrar'">
+                            Cadastrar
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Tabela de Produtos com Ações de Venda -->
+    <!-- Barra de Pesquisa -->
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body py-2">
+            <form th:action="@{/estoque}" method="get" class="row g-2 align-items-center">
+                <div class="col-auto flex-grow-1">
+                    <input type="text" name="nome" th:value="${termoBusca}" class="form-control form-control-sm" placeholder="Buscar produto por nome...">
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary btn-sm">Buscar</button>
+                    <a th:href="@{/estoque}" class="btn btn-outline-secondary btn-sm" th:if="${termoBusca}">Limpar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabela de Produtos -->
     <div class="card shadow-sm">
         <div class="card-header bg-dark text-white">Produtos em Estoque</div>
         <div class="card-body">
@@ -46,12 +89,10 @@
                 </thead>
                 <tbody>
                 <tr th:each="p : ${produtos}">
-                    <td th:text="${p.nome}" class="fw-bold"></td>
-                    <td th:text="'R$ ' + ${#numbers.formatDecimal(p.preco, 1, 2)}"></td>
+                    <td th:text="${p.nome}">Nome do Produto</td>
+                    <td th:text="${'R$ ' + #numbers.formatDecimal(p.preco, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
                     <td>
-                            <span th:text="${p.quantidade}"
-                                  th:class="${p.quantidade < 5} ? 'badge bg-danger' : 'badge bg-success'">
-                            </span>
+                        <span class="badge bg-success fs-6" th:text="${p.quantidade}">0</span>
                     </td>
                     <td>
                         <form th:action="@{/estoque/vender}" method="post" class="d-flex gap-2">
@@ -61,10 +102,18 @@
                         </form>
                     </td>
                     <td>
-                        <form th:action="@{/estoque/deletar}" method="post" class="d-inline">
-                            <input type="hidden" name="nome" th:value="${p.nome}"/>
-                            <button type="submit" class="btn btn-outline-danger btn-sm">Remover</button>
-                        </form>
+                        <div class="d-flex gap-2">
+                            <!-- Botão Editar -->
+                            <a th:href="@{/estoque/editar/{id}(id=${p.id})}" class="btn btn-sm btn-outline-warning">
+                                Editar
+                            </a>
+
+                            <!-- Botão Remover -->
+                            <form th:action="@{/estoque/deletar}" method="post" class="d-inline">
+                                <input type="hidden" name="nome" th:value="${p.nome}"/>
+                                <button type="submit" class="btn btn-outline-danger btn-sm">Remover</button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 </tbody>

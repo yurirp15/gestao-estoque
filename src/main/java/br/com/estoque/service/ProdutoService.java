@@ -3,6 +3,7 @@ package br.com.estoque.service;
 import br.com.estoque.model.Produto;
 import br.com.estoque.repository.ProdutoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -16,32 +17,50 @@ public class ProdutoService {
     }
 
     public Produto cadastrarProduto(Produto produto) {
-        if (repository.buscarPorNome(produto.getNome()).isPresent()) {
+        if (repository.findByNomeIgnoreCase(produto.getNome()).isPresent()) {
             throw new IllegalArgumentException("Já existe um produto com este nome: " + produto.getNome());
         }
-        return repository.salvar(produto);
+        return repository.save(produto);
     }
 
     public List<Produto> listarProdutos() {
-        return repository.buscarTodos();
+        return repository.findAll();
     }
 
     public Produto buscarPorNome(String nome) {
-        return repository.buscarPorNome(nome)
-                .orElseThrow(() -> new IllegalArgumentException("Produto não encontrado com o nome: " + nome));
+        return repository.findByNomeIgnoreCase(nome)
+                .orElseThrow(() -> new IllegalArgumentException("Produto não encontrado: " + nome));
     }
 
+    @Transactional
     public void adicionarEstoque(String nome, int quantidade) {
         Produto produto = buscarPorNome(nome);
         produto.adicionarEstoque(quantidade);
+        repository.save(produto);
     }
 
+    @Transactional
     public void removerEstoque(String nome, int quantidade) {
         Produto produto = buscarPorNome(nome);
         produto.removerEstoque(quantidade);
+        repository.save(produto);
     }
 
+    @Transactional
     public boolean deletarProduto(String nome) {
-        return repository.remover(nome);
+        if (repository.findByNomeIgnoreCase(nome).isPresent()) {
+            repository.deleteByNomeIgnoreCase(nome);
+            return true;
+        }
+        return false;
+    }
+
+    public void salvarProduto(Produto produto) {
+        repository.save(produto);
+    }
+
+    public Produto buscarPorId(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Produto não encontrado com ID: " + id));
     }
 }
