@@ -9,6 +9,11 @@ public class Produto {
     private double preco;
     private int quantidade;
 
+    //CONSTRUTOR PADRÃO (Necessário para o Spring/Jackson deserializar o JSON)
+    public Produto(){
+
+    }
+
     // Construtor completo
     public Produto(String nome, double preco, int quantidade) {
         this.nome = nome;
