@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
-@RequestMapping("/estoque")
 public class EstoqueWebController {
 
     private final ProdutoService service;
@@ -17,7 +16,13 @@ public class EstoqueWebController {
         this.service = service;
     }
 
-    @GetMapping
+    // Redireciona a raiz (http://localhost:8080/) para a tela de estoque
+    @GetMapping("/")
+    public String redirecionarRaiz() {
+        return "redirect:/estoque";
+    }
+
+    @GetMapping("/estoque")
     public String paginaPrincipal(@RequestParam(value = "nome", required = false) String nome, Model model) {
         if (nome != null && !nome.isBlank()) {
             model.addAttribute("produtos", service.listarProdutos().stream()
@@ -33,13 +38,13 @@ public class EstoqueWebController {
         return "index";
     }
 
-    @PostMapping("/cadastrar")
+    @PostMapping("/estoque/cadastrar")
     public String cadastrarProduto(@ModelAttribute Produto produto) {
         service.salvarProduto(produto);
         return "redirect:/estoque";
     }
 
-    @PostMapping("/vender")
+    @PostMapping("/estoque/vender")
     public String venderProduto(@RequestParam String nome, @RequestParam int quantidade, RedirectAttributes redirectAttributes) {
         try {
             service.removerEstoque(nome, quantidade);
@@ -49,13 +54,13 @@ public class EstoqueWebController {
         return "redirect:/estoque";
     }
 
-    @PostMapping("/deletar")
+    @PostMapping("/estoque/deletar")
     public String deletarProduto(@RequestParam String nome) {
         service.deletarProduto(nome);
         return "redirect:/estoque";
     }
 
-    @GetMapping("/editar/{id}")
+    @GetMapping("/estoque/editar/{id}")
     public String prepararEdicao(@PathVariable Long id, Model model) {
         Produto produto = service.buscarPorId(id);
 
@@ -65,7 +70,7 @@ public class EstoqueWebController {
         return "index";
     }
 
-    @PostMapping("/atualizar")
+    @PostMapping("/estoque/atualizar")
     public String atualizarProduto(@ModelAttribute Produto produto, RedirectAttributes redirectAttributes) {
         try {
             service.salvarProduto(produto);
